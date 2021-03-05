@@ -8,12 +8,21 @@ import android.view.ViewGroup;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
+import com.firebase.ui.firestore.FirestoreRecyclerOptions;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
+import com.google.firebase.firestore.CollectionReference;
+import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.Query;
 
 public class NotesListFragment extends Fragment {
     private FloatingActionButton addNoteBtn;
-
+    private RecyclerView recyclerView;
+    private FirebaseFirestore db = FirebaseFirestore.getInstance();
+    private CollectionReference notebookRef = db.collection("Notebook");
+    private ProjectAdapter adapter;
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -29,7 +38,57 @@ public class NotesListFragment extends Fragment {
         return view;
     }
 
+    @Override
+    public void onActivityCreated(@Nullable Bundle savedInstanceState) {
+        super.onActivityCreated(savedInstanceState);
+        addNoteBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                goToAddFragment();
+            }
+        });
+
+        setUpRecyclerView();
+    }
+
+    @Override
+    public void onStart() {
+        adapter.startListening();
+        super.onStart();
+    }
+
+    @Override
+    public void onStop() {
+        adapter.stopListening();
+        super.onStop();
+    }
+
     private void initView(View view) {
         addNoteBtn = view.findViewById(R.id.fab_add_new);
+        recyclerView = view.findViewById(R.id.rv_notes);
     }
+
+    private void setUpRecyclerView() {
+        Query query = notebookRef.orderBy("title");
+
+        FirestoreRecyclerOptions<NoteModel> options = new FirestoreRecyclerOptions.Builder<NoteModel>()
+                .setQuery(query, NoteModel.class)
+                .build();
+
+        adapter = new ProjectAdapter(options);
+        recyclerView.setHasFixedSize(true);
+        recyclerView.setLayoutManager(new LinearLayoutManager(getActivity()));
+        recyclerView.setAdapter(adapter);
+    }
+
+    private void goToAddFragment() {
+        Fragment fragment = new NoteFragment();
+        requireActivity().getSupportFragmentManager()
+                .beginTransaction()
+                .replace(R.id.layout_container, fragment)
+                .addToBackStack(null)
+                .commit();
+    }
+
+
 }

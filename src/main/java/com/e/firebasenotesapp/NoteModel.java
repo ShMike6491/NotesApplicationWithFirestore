@@ -1,6 +1,8 @@
 package com.e.firebasenotesapp;
 
-public class NoteModel {
+import java.io.Serializable;
+
+public class NoteModel implements Serializable {
     private String title;
     private String description;
 
