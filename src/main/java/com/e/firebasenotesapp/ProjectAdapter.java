@@ -3,7 +3,6 @@ package com.e.firebasenotesapp;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
@@ -11,8 +10,10 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.firebase.ui.firestore.FirestoreRecyclerAdapter;
 import com.firebase.ui.firestore.FirestoreRecyclerOptions;
 import com.google.android.material.textview.MaterialTextView;
+import com.google.firebase.firestore.DocumentSnapshot;
 
 public class ProjectAdapter extends FirestoreRecyclerAdapter<NoteModel, ProjectAdapter.NoteHolder> {
+    private HandleUpdateNote callback;
 
     public ProjectAdapter(@NonNull FirestoreRecyclerOptions<NoteModel> options) {
         super(options);
@@ -31,6 +32,10 @@ public class ProjectAdapter extends FirestoreRecyclerAdapter<NoteModel, ProjectA
         return new NoteHolder(view);
     }
 
+    public void setCallback(HandleUpdateNote callback) {
+        this.callback = callback;
+    }
+
     public void deleteItem(int position) {
         getSnapshots().getSnapshot(position).getReference().delete();
     }
@@ -47,7 +52,12 @@ public class ProjectAdapter extends FirestoreRecyclerAdapter<NoteModel, ProjectA
             itemView.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    //TODO finish this later
+                    int position = getAdapterPosition();
+                    if (position != RecyclerView.NO_POSITION && callback != null) {
+                        DocumentSnapshot ds = getSnapshots()
+                                .getSnapshot(position);
+                        callback.onItemClick(ds, position);
+                    }
                 }
             });
         }

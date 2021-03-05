@@ -25,14 +25,16 @@ public class NoteFragment extends Fragment {
     private TextInputEditText title;
     private TextInputEditText description;
     private NoteModel note;
+    private String noteID;
 
     private CollectionReference notebookRef = FirebaseFirestore.getInstance()
             .collection("Notebook");
 
-    public static NoteFragment newInstance(NoteModel model) {
+    public static NoteFragment newInstance(NoteModel model, String noteID) {
         NoteFragment fragment = new NoteFragment();
         Bundle args = new Bundle();
         args.putSerializable(Constants.SAVE_FRAGMENT_INSTANCE, model);
+        args.putString(Constants.SAVE_ID_INSTANCE, noteID);
         fragment.setArguments(args);
         return fragment;
     }
@@ -85,6 +87,7 @@ public class NoteFragment extends Fragment {
     private void updateViews() {
         note = (NoteModel) getArguments()
                 .getSerializable(Constants.SAVE_FRAGMENT_INSTANCE);
+        noteID = getArguments().getString(Constants.SAVE_ID_INSTANCE);
 
         title.setText(note.getTitle());
         description.setText(note.getDescription());
@@ -121,6 +124,9 @@ public class NoteFragment extends Fragment {
     }
 
     private void editNote(String name, String desc) {
+        NoteModel note = new NoteModel(name, desc);
+
+        notebookRef.document(noteID).set(note);
     }
 
     private void goBack() {

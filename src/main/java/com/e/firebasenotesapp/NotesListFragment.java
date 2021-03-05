@@ -15,6 +15,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.firebase.ui.firestore.FirestoreRecyclerOptions;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.firebase.firestore.CollectionReference;
+import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.Query;
 
@@ -51,6 +52,13 @@ public class NotesListFragment extends Fragment {
 
         setUpRecyclerView();
         handleSwipeDelete();
+
+        adapter.setCallback(new HandleUpdateNote() {
+            @Override
+            public void onItemClick(DocumentSnapshot documentSnapshot, int position) {
+                gotoEditFragment(documentSnapshot, position);
+            }
+        });
     }
 
     @Override
@@ -111,5 +119,15 @@ public class NotesListFragment extends Fragment {
                 .commit();
     }
 
+    private void gotoEditFragment(DocumentSnapshot documentSnapshot, int position) {
+        NoteModel note = documentSnapshot.toObject(NoteModel.class);
+        String id = documentSnapshot.getId();
 
+        Fragment fragment = NoteFragment.newInstance(note, id);
+        requireActivity().getSupportFragmentManager()
+                .beginTransaction()
+                .replace(R.id.layout_container, fragment)
+                .addToBackStack(null)
+                .commit();
+    }
 }
