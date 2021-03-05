@@ -31,6 +31,10 @@ public class ProjectAdapter extends FirestoreRecyclerAdapter<NoteModel, ProjectA
         return new NoteHolder(view);
     }
 
+    public void deleteItem(int position) {
+        getSnapshots().getSnapshot(position).getReference().delete();
+    }
+
     class NoteHolder extends RecyclerView.ViewHolder {
         private MaterialTextView title;
         private MaterialTextView description;
