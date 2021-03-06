@@ -21,4 +21,11 @@
         android:minLines="4"
         android:layout_marginTop="@dimen/space_middle"/>
 
+    <Button
+        android:id="@+id/mb_submit"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/space_middle"
+        android:text="@string/submit"/>
+
 </LinearLayout>

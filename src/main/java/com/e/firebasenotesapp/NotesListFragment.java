@@ -1,5 +1,7 @@
 package com.e.firebasenotesapp;
 
+import android.app.AlertDialog;
+import android.content.DialogInterface;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -13,6 +15,7 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.firebase.ui.firestore.FirestoreRecyclerOptions;
+import com.google.android.material.bottomsheet.BottomSheetDialogFragment;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.DocumentSnapshot;
@@ -105,29 +108,41 @@ public class NotesListFragment extends Fragment {
             @Override
             public void onSwiped(@NonNull RecyclerView.ViewHolder viewHolder, int direction)
             {
-                adapter.deleteItem(viewHolder.getAdapterPosition());
+                showConfirmDialog(viewHolder.getAdapterPosition());
             }
         }).attachToRecyclerView(recyclerView);
     }
 
+    private void showConfirmDialog(final int itemPosition) {
+        new AlertDialog.Builder(requireContext())
+                .setTitle(R.string.dialog_title)
+                .setMessage(R.string.dialog_description)
+                .setPositiveButton(R.string.dialog_button, new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        adapter.deleteItem(itemPosition);
+                    }
+                })
+                .setOnCancelListener(new DialogInterface.OnCancelListener() {
+                    @Override
+                    public void onCancel(DialogInterface dialog) {
+                        adapter.notifyItemChanged(itemPosition);
+                    }
+                })
+                .create()
+                .show();
+    }
+
     private void goToAddFragment() {
-        Fragment fragment = new NoteFragment();
-        requireActivity().getSupportFragmentManager()
-                .beginTransaction()
-                .replace(R.id.layout_container, fragment)
-                .addToBackStack(null)
-                .commit();
+        BottomSheetDialogFragment fragment = new NoteFragment();
+        fragment.show(getChildFragmentManager(), null);
     }
 
     private void gotoEditFragment(DocumentSnapshot documentSnapshot, int position) {
         NoteModel note = documentSnapshot.toObject(NoteModel.class);
         String id = documentSnapshot.getId();
 
-        Fragment fragment = NoteFragment.newInstance(note, id);
-        requireActivity().getSupportFragmentManager()
-                .beginTransaction()
-                .replace(R.id.layout_container, fragment)
-                .addToBackStack(null)
-                .commit();
+        BottomSheetDialogFragment fragment = NoteFragment.newInstance(note, id);
+        fragment.show(getChildFragmentManager(), null);
     }
 }

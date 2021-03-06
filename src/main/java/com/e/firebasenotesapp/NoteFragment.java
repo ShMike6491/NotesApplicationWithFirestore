@@ -2,47 +2,38 @@ package com.e.firebasenotesapp;
 
 import android.os.Bundle;
 import android.view.LayoutInflater;
-import android.view.Menu;
-import android.view.MenuInflater;
-import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 
-import com.google.android.gms.tasks.OnFailureListener;
-import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.android.material.bottomsheet.BottomSheetDialogFragment;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.firebase.firestore.CollectionReference;
-import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.FirebaseFirestore;
 
-public class NoteFragment extends Fragment {
+public class NoteFragment extends BottomSheetDialogFragment {
 
     private TextInputEditText title;
     private TextInputEditText description;
+    private Button button;
     private NoteModel note;
     private String noteID;
 
     private CollectionReference notebookRef = FirebaseFirestore.getInstance()
             .collection("Notebook");
 
-    public static NoteFragment newInstance(NoteModel model, String noteID) {
-        NoteFragment fragment = new NoteFragment();
+    public static BottomSheetDialogFragment newInstance(NoteModel model, String noteID) {
+        BottomSheetDialogFragment fragment = new NoteFragment();
         Bundle args = new Bundle();
         args.putSerializable(Constants.SAVE_FRAGMENT_INSTANCE, model);
         args.putString(Constants.SAVE_ID_INSTANCE, noteID);
         fragment.setArguments(args);
         return fragment;
-    }
-
-    @Override
-    public void onCreate(@Nullable Bundle savedInstanceState) {
-        setHasOptionsMenu(true);
-        super.onCreate(savedInstanceState);
     }
 
     @Nullable
@@ -61,27 +52,16 @@ public class NoteFragment extends Fragment {
         }
     }
 
-    @Override
-    public void onCreateOptionsMenu(@NonNull Menu menu, @NonNull MenuInflater inflater) {
-        inflater.inflate(R.menu.new_note_menu, menu);
-        super.onCreateOptionsMenu(menu, inflater);
-    }
-
-    @Override
-    public boolean onOptionsItemSelected(@NonNull MenuItem item) {
-        switch (item.getItemId())
-        {
-            case R.id.menu_save_note:
-                saveNote();
-                return true;
-            default:
-                return super.onOptionsItemSelected(item);
-        }
-    }
-
     private void initView(View view) {
         title = view.findViewById(R.id.et_note_details_title);
         description = view.findViewById(R.id.et_note_details_description);
+        button = view.findViewById(R.id.mb_submit);
+        button.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                saveNote();
+            }
+        });
     }
 
     private void updateViews() {
@@ -98,7 +78,7 @@ public class NoteFragment extends Fragment {
         String desc = description.getText().toString();
 
         if(isEmpty(name,desc)) {
-            showToast("Title and Descriptions fields should not be empty");
+            Toast.makeText(getActivity(), "Title and Descriptions fields should not be empty", Toast.LENGTH_SHORT).show();
             return;
         } else if (notExistingNote()) {
             saveNewNote(name, desc);
@@ -110,17 +90,7 @@ public class NoteFragment extends Fragment {
     }
 
     private void saveNewNote(String name, String desc) {
-        notebookRef.add(new NoteModel(name, desc)).addOnSuccessListener(new OnSuccessListener<DocumentReference>() {
-            @Override
-            public void onSuccess(DocumentReference documentReference) {
-                showToast("Note added successfully");
-            }
-        }).addOnFailureListener(new OnFailureListener() {
-            @Override
-            public void onFailure(@NonNull Exception e) {
-                showToast("Something went wrong");
-            }
-        });
+        notebookRef.add(new NoteModel(name, desc));
     }
 
     private void editNote(String name, String desc) {
@@ -143,9 +113,5 @@ public class NoteFragment extends Fragment {
 
     private boolean isEmpty(String name, String desc) {
         return name.trim().isEmpty() || desc.trim().isEmpty();
-    }
-
-    private void showToast(String msg) {
-        Toast.makeText(getActivity(), msg, Toast.LENGTH_SHORT).show();
     }
 }
